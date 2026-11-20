@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RideFlow — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f5f7;
+  --white: #ffffff;
+  --crimson: #dc143c;
+  --crimson-dark: #b01030;
+  --crimson-light: #fdf0f3;
+  --border: #e4e7ec;
+  --text: #111827;
+  --muted: #6b7280;
+  --light: #9ca3af;
+  --sidebar-w: 230px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+
+.sidebar {
+  position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w);
+  background: var(--white); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; z-index: 50;
+}
+.logo { padding: 20px 20px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.logo-icon { width: 34px; height: 34px; border-radius: 8px; background: var(--crimson); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700; flex-shrink: 0; }
+.logo-name { font-size: 0.95rem; font-weight: 700; }
+.logo-role { font-size: 0.62rem; color: var(--muted); font-weight: 400; }
+nav { flex: 1; padding: 10px 10px; overflow-y: auto; }
+.nav-label { font-size: 0.58rem; font-weight: 600; color: var(--light); letter-spacing: 1px; text-transform: uppercase; padding: 10px 10px 4px; }
+.nav-item { display: flex; align-items: center; gap: 9px; padding: 9px 10px; border-radius: 7px; cursor: pointer; font-size: 0.77rem; font-weight: 500; color: var(--muted); transition: all 0.15s; margin-bottom: 1px; }
+.nav-item:hover { background: var(--bg); color: var(--text); }
+.nav-item.active { background: var(--crimson-light); color: var(--crimson); font-weight: 600; }
+.nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+.sidebar-footer { padding: 14px 16px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--crimson); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
+.av-name { font-size: 0.74rem; font-weight: 600; }
+.av-role { font-size: 0.6rem; color: var(--muted); }
+
+.main { margin-left: var(--sidebar-w); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+.topbar { height: 56px; background: var(--white); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 26px; gap: 10px; flex-shrink: 0; }
+.topbar h1 { font-size: 0.92rem; font-weight: 600; flex: 1; }
+.tbtn { font-family: 'Poppins', sans-serif; font-size: 0.7rem; font-weight: 500; padding: 6px 13px; border-radius: 6px; border: 1px solid var(--border); background: var(--white); color: var(--muted); cursor: pointer; transition: all 0.15s; text-decoration: none; display: inline-block; }
+.tbtn:hover { border-color: var(--crimson); color: var(--crimson); }
+.tbtn.pri { background: var(--crimson); color: #fff; border-color: var(--crimson); }
+.tbtn.pri:hover { background: var(--crimson-dark); }
+
+.content { flex: 1; overflow-y: auto; padding: 22px 26px; }
+.section { display: none; }
+.section.active { display: block; animation: fi 0.2s ease; }
+@keyframes fi { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+
+.sec-head { margin-bottom: 18px; }
+.sec-head h2 { font-size: 1.05rem; font-weight: 700; }
+.sec-head p { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+.stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 20px; }
+.stat { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; border-left: 3px solid var(--crimson); box-shadow: var(--shadow); }
+.stat .s-lbl { font-size: 0.68rem; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
+.stat .s-val { font-size: 1.7rem; font-weight: 700; line-height: 1; }
+.stat .s-sub { font-size: 0.62rem; color: var(--light); margin-top: 4px; }
+
+.card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 20px; box-shadow: var(--shadow); margin-bottom: 16px; }
+.card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.card-title { font-size: 0.8rem; font-weight: 600; }
+.card-sub { font-size: 0.63rem; color: var(--muted); margin-top: 2px; font-weight: 400; }
+.chart-wrap { height: 240px; }
+.chart-wrap canvas { width: 100% !important; height: 240px !important; }
+
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.g65 { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; }
+
+label { display: block; font-size: 0.68rem; font-weight: 500; color: var(--text); margin-bottom: 4px; margin-top: 12px; }
+label:first-child { margin-top: 0; }
+input, select, textarea { width: 100%; font-family: 'Poppins', sans-serif; font-size: 0.76rem; padding: 8px 11px; border: 1px solid var(--border); border-radius: 7px; background: var(--white); color: var(--text); outline: none; transition: border 0.15s; }
+input:focus, select:focus, textarea:focus { border-color: var(--crimson); }
+textarea { resize: vertical; min-height: 75px; }
+
+.btn { font-family: 'Poppins', sans-serif; font-size: 0.74rem; font-weight: 600; padding: 8px 16px; border-radius: 7px; border: none; cursor: pointer; transition: all 0.15s; }
+.btn-pri { background: var(--crimson); color: #fff; }
+.btn-pri:hover { background: var(--crimson-dark); }
+.btn-out { background: transparent; color: var(--crimson); border: 1px solid var(--crimson); }
+.btn-out:hover { background: var(--crimson-light); }
+.btn-ghost { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+.btn-ghost:hover { color: var(--text); }
+.btn-full { width: 100%; margin-top: 12px; }
+.btn-sm { padding: 5px 11px; font-size: 0.67rem; }
+.btn-danger { background: #fff1f2; color: #9f1239; border: 1px solid #fecdd3; width: 100%; margin-top: 12px; }
+.btn-danger:hover { background: #ffe4e8; }
+
+.alert { padding: 9px 13px; border-radius: 7px; font-size: 0.71rem; font-weight: 500; margin-top: 10px; }
+.alert-ok { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+.alert-err { background: #fff1f2; border: 1px solid #fecdd3; color: #9f1239; }
+
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+th { font-size: 0.62rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; padding: 9px 11px; text-align: left; border-bottom: 2px solid var(--border); }
+td { padding: 9px 11px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: #fafafa; }
+
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 0.6rem; font-weight: 600; }
+.bg { background: #f0fdf4; color: #166534; }
+.bb { background: #eff6ff; color: #1d4ed8; }
+.by { background: #fefce8; color: #854d0e; }
+.br { background: #fff1f2; color: #9f1239; }
+.bgr { background: var(--bg); color: var(--muted); }
+.bo { background: #fff7ed; color: #9a3412; }
+
+.lb-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.lb-row:last-child { border-bottom: none; }
+.lb-n { width: 22px; font-size: 0.74rem; font-weight: 700; color: var(--light); text-align: center; }
+.lb-n.top { color: var(--crimson); }
+.lb-info { flex: 1; }
+.lb-name { font-size: 0.74rem; font-weight: 600; }
+.lb-city { font-size: 0.62rem; color: var(--muted); }
+.lb-star { font-size: 0.7rem; font-weight: 600; color: #d97706; }
+.lb-trips { font-size: 0.62rem; color: var(--muted); }
+
+.rev-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+.rev-lbl { font-size: 0.66rem; color: var(--muted); width: 50px; flex-shrink: 0; }
+.rev-track { flex: 1; height: 5px; background: var(--bg); border-radius: 3px; }
+.rev-fill { height: 100%; border-radius: 3px; background: var(--crimson); }
+.rev-val { font-size: 0.66rem; font-weight: 600; width: 80px; text-align: right; }
+
+.pr-row { display: grid; grid-template-columns: 90px 1fr 1fr 1fr 1fr 72px; gap: 10px; align-items: end; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.pr-row:last-child { border-bottom: none; }
+.pr-type { font-size: 0.74rem; font-weight: 600; padding-top: 22px; }
+
+.flag-item { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 8px; margin-bottom: 8px; }
+.fi-body { flex: 1; }
+.fi-name { font-size: 0.74rem; font-weight: 600; }
+.fi-reason { font-size: 0.66rem; color: #9f1239; margin-top: 2px; }
+.fi-time { font-size: 0.6rem; color: var(--muted); white-space: nowrap; }
+
+.act-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.act-item:last-child { border-bottom: none; }
+.act-dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.d-cr { background: var(--crimson); } .d-gr { background: #22c55e; } .d-bl { background: #3b82f6; }
+.act-text { font-size: 0.68rem; color: var(--muted); line-height: 1.5; }
+.act-text b { color: var(--text); font-weight: 600; }
+.act-time { font-size: 0.59rem; color: var(--light); margin-top: 1px; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">R</div>
+    <div><div class="logo-name">RideFlow</div><div class="logo-role">Admin Panel</div></div>
+  </div>
+  <nav>
+    <div class="nav-label">Overview</div>
+    <div class="nav-item active" onclick="show('overview',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+    <div class="nav-label">Management</div>
+    <div class="nav-item" onclick="show('users',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Users</div>
+    <div class="nav-item" onclick="show('drivers',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M17 11l4 4-4 4"/></svg>Drivers</div>
+    <div class="nav-item" onclick="show('vehicles',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17H3a2 2 0 01-2-2V9a2 2 0 012-2h11l4 4v4a2 2 0 01-2 2h-2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>Vehicles</div>
+    <div class="nav-item" onclick="show('rides',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>Rides</div>
+    <div class="nav-label">Finance</div>
+    <div class="nav-item" onclick="show('pricing',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 100 7h5a3.5 3.5 0 110 7H6"/></svg>Pricing</div>
+    <div class="nav-item" onclick="show('payments',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>Payments</div>
+    <div class="nav-item" onclick="show('promos',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4l-7.2 7.2a2 2 0 01-2.8 0L2 12V2h10l8.6 8.6a2 2 0 010 2.8z"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/></svg>Promo Codes</div>
+    <div class="nav-label">Analytics</div>
+    <div class="nav-item" onclick="show('reports',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>Reports</div>
+    <div class="nav-item" onclick="show('leaderboard',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21H4a1 1 0 01-1-1v-5a1 1 0 011-1h4M16 21h4a1 1 0 001-1V9a1 1 0 00-1-1h-4M8 21V11a1 1 0 011-1h6a1 1 0 011 1v10M8 21H16"/></svg>Leaderboard</div>
+    <div class="nav-item" onclick="show('flags',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/></svg>Flags</div>
+    <div class="nav-label">System</div>
+    <div class="nav-item" id="nav-setup" onclick="show('setup',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>Setup DB</div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="avatar">A</div>
+    <div><div class="av-name">Admin</div><div class="av-role">Super Admin</div></div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <h1 id="ptitle">Dashboard</h1>
+    <button class="tbtn" onclick="initAll()">↻ Refresh</button>
+    <button class="tbtn" onclick="logout()">Logout</button>
+    <a class="tbtn" href="rider.html">Rider View</a>
+    <a class="tbtn" href="driver.html">Driver View</a>
+    <button class="tbtn pri" onclick="show('setup', document.getElementById('nav-setup'))">DB Setup</button>
+  </div>
+
+  <div class="content">
+
+    <!-- OVERVIEW -->
+    <div id="overview" class="section active">
+      <div class="stats-row">
+        <div class="stat"><div class="s-lbl">Total Users</div><div class="s-val" id="st-u">—</div><div class="s-sub">All accounts</div></div>
+        <div class="stat"><div class="s-lbl">Online Drivers</div><div class="s-val" id="st-d">—</div><div class="s-sub">Available now</div></div>
+        <div class="stat"><div class="s-lbl">Total Rides</div><div class="s-val" id="st-r">—</div><div class="s-sub">All statuses</div></div>
+        <div class="stat"><div class="s-lbl">Pending Flags</div><div class="s-val" id="st-f">—</div><div class="s-sub">Needs review</div></div>
+      </div>
+      <div class="g65">
+        <div class="card">
+          <div class="card-head"><div><div class="card-title">Recent Rides</div><div class="card-sub">Latest platform activity</div></div><button class="btn btn-ghost btn-sm" onclick="loadOvRides()">Refresh</button></div>
+          <div class="tbl-wrap"><div id="ov-rides"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Activity</div></div>
+          <div id="ov-feed"><div class="act-item"><div class="act-dot d-bl"></div><div><div class="act-text">System <b>ready</b></div><div class="act-time">Now</div></div></div></div>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="card-head"><div class="card-title">Top Drivers</div></div><div id="ov-lb"></div></div>
+        <div class="card"><div class="card-head"><div class="card-title">Revenue by Method</div></div><div id="ov-rev"></div></div>
+      </div>
+      <div class="g2">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Revenue Trend</div></div>
+          <div class="chart-wrap"><canvas id="rev-chart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Rides by Status</div></div>
+          <div class="chart-wrap"><canvas id="status-chart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div id="users" class="section">
+      <div class="sec-head"><h2>Users</h2><p>Manage all registered accounts</p></div>
+      <div class="g2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Account Status</div></div>
+          <label>User ID</label><input id="u-sid" type="number" placeholder="3">
+          <label>Status</label><select id="u-sval"><option>Active</option><option>Suspended</option><option>Banned</option></select>
+          <button class="btn btn-pri btn-full" onclick="updateStatus()">Update Status</button>
+          <div id="u-smsg"></div>
+          <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
+            <label>Filter by Role</label>
+            <select id="u-filter" onchange="loadUsers()"><option value="">All Roles</option><option value="rider">Rider</option><option value="driver">Driver</option><option value="admin">Admin</option></select>
+            <button class="btn btn-out btn-sm" style="margin-top:10px" onclick="loadUsers()">Load Users</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Delete User</div></div>
+          <label>User ID</label><input id="u-del-id" type="number" placeholder="3">
+          <button class="btn btn-danger" onclick="deleteUser()">Delete User</button>
+          <div id="u-dmsg"></div>
+        </div>
+      </div>
+      <div class="card"><div class="card-head"><div class="card-title">All Users</div><button class="btn btn-ghost btn-sm" onclick="loadUsers()">↻ Load</button></div><div class="tbl-wrap"><div id="users-tbl"></div></div></div>
+    </div>
+
+    <!-- DRIVERS -->
+    <div id="drivers" class="section">
+      <div class="sec-head"><h2>Drivers</h2><p>Register, verify and manage drivers</p></div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-head"><div class="card-title">Driver Actions</div></div>
+        <div class="g2">
+          <div>
+            <label>Driver ID</label><input id="d-aid" type="number">
+            <label>Verification Status</label><select id="d-vst"><option>Verified</option><option>Rejected</option><option>Pending</option></select>
+            <button class="btn btn-pri btn-full" onclick="verifyDriver()">Update Verification</button>
+          </div>
+          <div>
+            <label>Availability</label><select id="d-avail"><option>Online</option><option>Offline</option><option>On Trip</option></select>
+            <button class="btn btn-out btn-full" style="margin-top:10px" onclick="setAvail()">Set Availability</button>
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+              <label>Driver ID (Payout)</label><input id="d-paid" type="number">
+              <button class="btn btn-danger" onclick="doPayout()">Process Payout</button>
+            </div>
+          </div>
+        </div>
+        <div id="d-amsg"></div>
+      </div>
+      <div class="card"><div class="card-head"><div class="card-title">All Drivers</div><button class="btn btn-ghost btn-sm" onclick="loadDrivers()">↻ Load</button></div><div class="tbl-wrap"><div id="drivers-tbl"></div></div></div>
+    </div>
+
+    <!-- VEHICLES -->
+    <div id="vehicles" class="section">
+      <div class="sec-head"><h2>Vehicles</h2><p>Register and verify driver vehicles</p></div>
+      <div class="g2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Register Vehicle</div></div>
+          <label>Driver ID</label>
+<input id="v-did" type="number">
+<div id="v-did-hint" style="font-size:0.68rem;color:var(--muted);margin-top:4px;line-height:1.6"></div>
+          <div class="g2" style="margin-bottom:0"><div><label>Make</label><input id="v-make" placeholder="Toyota"></div><div><label>Model</label><input id="v-model" placeholder="Corolla"></div></div>
+          <div class="g2" style="margin-bottom:0"><div><label>Year</label><input id="v-year" type="number" placeholder="2022"></div><div><label>Color</label><input id="v-color" placeholder="White"></div></div>
+          <label>License Plate</label><input id="v-plate" placeholder="LHR-1234">
+          <label>Type</label><select id="v-type"><option>Economy</option><option>Premium</option><option>Bike</option></select>
+          <button class="btn btn-pri btn-full" onclick="createVehicle()">Register Vehicle</button>
+          <div id="v-msg"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Verify Vehicle</div></div>
+          <label>Vehicle ID</label><input id="v-vid" type="number">
+          <label>Status</label><select id="v-vst"><option>Verified</option><option>Rejected</option><option>Pending</option></select>
+          <button class="btn btn-pri btn-full" onclick="verifyVehicle()">Update</button>
+          <div id="v-amsg"></div>
+        </div>
+      </div>
+      <div class="card"><div class="card-head"><div class="card-title">All Vehicles</div><button class="btn btn-ghost btn-sm" onclick="loadVehicles()">↻ Load</button></div><div class="tbl-wrap"><div id="vehicles-tbl"></div></div></div>
+    </div>
+
+    <!-- RIDES -->
+    <div id="rides" class="section">
+      <div class="sec-head"><h2>Rides</h2><p>Monitor and control all rides</p></div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-head">
+          <div><div class="card-title">Ride Monitor</div></div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="r-filter" onchange="loadRides()" style="padding:6px 10px;font-size:0.71rem;width:160px">
+              <option value="">All Statuses</option><option>Requested</option><option>Accepted</option><option>Driver En Route</option><option>In Progress</option><option>Completed</option><option>Cancelled</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" onclick="loadRides()">↻</button>
+          </div>
+        </div>
+        <div class="tbl-wrap"><div id="rides-tbl"></div></div>
+      </div>
+      <div class="g2">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Assign Driver</div></div>
+          <label>Ride ID</label><input id="ra-rid" type="number">
+          <label>Driver ID</label><input id="ra-did" type="number">
+          <label>Vehicle ID</label><input id="ra-vid" type="number">
+          <button class="btn btn-pri btn-full" onclick="assignDriver()">Assign Driver</button>
+          <div id="ra-msg"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Update Status</div></div>
+          <label>Ride ID</label><input id="rs-rid" type="number">
+          <label>Status</label><select id="rs-st"><option>Requested</option><option>Accepted</option><option>Driver En Route</option><option>In Progress</option><option>Completed</option><option>Cancelled</option></select>
+          <button class="btn btn-pri btn-full" onclick="updateRideStatus()">Update</button>
+          <div id="rs-msg"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRICING -->
+    <div id="pricing" class="section">
+      <div class="sec-head"><h2>Fare & Pricing</h2><p>Configure rates and run the fare stored procedure</p></div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-head"><div><div class="card-title">Pricing Rules</div><div class="card-sub">Base Rate + (Per KM × Distance) + (Per Min × Duration) × Surge</div></div><button class="btn btn-ghost btn-sm" onclick="loadPricing()">↻ Load</button></div>
+        <div id="pricing-ed"></div>
+        <div id="pricing-msg"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div><div class="card-title">Fare Calculator</div><div class="card-sub">Calls the MySQL stored procedure</div></div></div>
+        <div class="g3">
+          <div><label>Vehicle Type</label><select id="fc-type"><option>Economy</option><option>Premium</option><option>Bike</option></select></div>
+          <div><label>Distance (km)</label><input id="fc-dist" type="number" value="5" step="0.1"></div>
+          <div><label>Duration (min)</label><input id="fc-dur" type="number" value="15"></div>
+        </div>
+        <div style="max-width:260px"><label>Promo Code</label><input id="fc-promo" placeholder="e.g. SAVE20"></div>
+        <button class="btn btn-pri" style="margin-top:12px" onclick="calcFare()">Calculate Fare</button>
+        <div id="fare-res" style="margin-top:14px"></div>
+      </div>
+    </div>
+
+    <!-- PAYMENTS -->
+    <div id="payments" class="section">
+      <div class="sec-head"><h2>Payments</h2><p>Record payments and process refunds</p></div>
+      <div class="g2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Record Payment</div></div>
+          <label>Ride ID</label><input id="p-rid" type="number">
+          <label>Rider ID</label><input id="p-uid" type="number">
+          <label>Method</label><select id="p-method"><option>Cash</option><option>Wallet</option><option>Card</option></select>
+          <label>Promo Discount (PKR)</label><input id="p-disc" type="number" value="0">
+          <button class="btn btn-pri btn-full" onclick="recordPay()">Record Payment</button>
+          <div id="p-msg"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Refund</div></div>
+          <label>Payment ID</label><input id="ref-id" type="number">
+          <button class="btn btn-danger" onclick="refundPay()">Process Refund</button>
+          <div id="ref-msg"></div>
+        </div>
+      </div>
+      <div class="card"><div class="card-head"><div class="card-title">Payment Records</div><button class="btn btn-ghost btn-sm" onclick="loadPayments()">↻ Load</button></div><div class="tbl-wrap"><div id="pay-tbl"></div></div></div>
+    </div>
+
+    <!-- PROMOS -->
+    <div id="promos" class="section">
+      <div class="sec-head"><h2>Promo Codes</h2><p>Create discount codes for riders</p></div>
+      <div class="g2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Create Promo</div></div>
+          <label>Code</label><input id="pr-code" placeholder="SAVE20">
+          <label>Discount %</label><input id="pr-disc" type="number" placeholder="20">
+          <label>Valid Until</label><input id="pr-date" type="date">
+          <button class="btn btn-pri btn-full" onclick="createPromo()">Create Promo</button>
+          <div id="pr-msg"></div>
+        </div>
+        <div class="card" style="background:var(--crimson-light);border-color:#fecdd3;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px">
+          <div style="font-size:2.2rem">🏷️</div>
+          <div style="font-size:0.76rem;font-weight:600;color:var(--crimson)">Applied at checkout</div>
+          <div style="font-size:0.67rem;color:#9f1239;text-align:center">via the MySQL stored procedure<br>on fare calculation</div>
+        </div>
+      </div>
+      <div class="card"><div class="card-head"><div class="card-title">Active Promos</div><button class="btn btn-ghost btn-sm" onclick="loadPromos()">↻ Load</button></div><div class="tbl-wrap"><div id="promos-tbl"></div></div></div>
+    </div>
+
+    <!-- REPORTS -->
+    <div id="reports" class="section">
+      <div class="sec-head"><h2>Financial Reports</h2><p>Revenue, earnings and refund analytics</p></div>
+      <div class="stats-row" style="margin-bottom:16px">
+        <div class="stat"><div class="s-lbl">Total Revenue</div><div class="s-val" id="rpt-rev">—</div><div class="s-sub">PKR, all time</div></div>
+        <div class="stat"><div class="s-lbl">Transactions</div><div class="s-val" id="rpt-txn">—</div><div class="s-sub">Paid payments</div></div>
+        <div class="stat"><div class="s-lbl">Driver Wallets</div><div class="s-val" id="rpt-drv">—</div><div class="s-sub">Total balance</div></div>
+        <div class="stat"><div class="s-lbl">Total Refunds</div><div class="s-val" id="rpt-ref">—</div><div class="s-sub">PKR refunded</div></div>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="card-head"><div class="card-title">Revenue by Date & Method</div><button class="btn btn-ghost btn-sm" onclick="loadRevenue()">↻</button></div><div class="tbl-wrap"><div id="rev-tbl"></div></div></div>
+        <div class="card"><div class="card-head"><div class="card-title">Driver Earnings</div><button class="btn btn-ghost btn-sm" onclick="loadEarnings()">↻</button></div><div class="tbl-wrap"><div id="earn-tbl"></div></div></div>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div id="leaderboard" class="section">
+      <div class="sec-head"><h2>Driver Leaderboard</h2><p>Top-rated verified drivers — live MySQL VIEW</p></div>
+      <div class="card"><div class="card-head"><div class="card-title">Rankings</div><button class="btn btn-ghost btn-sm" onclick="loadLB()">↻ Refresh</button></div><div id="lb-list"></div></div>
+    </div>
+
+    <!-- FLAGS -->
+    <div id="flags" class="section">
+      <div class="sec-head"><h2>Admin Flags</h2><p>Auto-generated by trigger when driver avg rating &lt; 3.5 ★</p></div>
+      <button class="btn btn-out btn-sm" onclick="loadFlags()" style="margin-bottom:14px">↻ Refresh Flags</button>
+      <div id="flags-list"></div>
+    </div>
+
+    <!-- SETUP -->
+    <div id="setup" class="section">
+      <div class="sec-head"><h2>Database Setup</h2><p>Run once to create all tables, triggers, procedures, and views</p></div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Initialize Database</div><div class="card-sub">Creates schema and default pricing data</div></div>
+        <div style="font-size:0.72rem;color:var(--muted);line-height:1.6">
+          This operation is idempotent. You can safely re-run it if you update the schema.
+        </div>
+        <button class="btn btn-pri" style="margin-top:12px" onclick="setupDB()">Run Setup</button>
+        <div id="setup-msg"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const API = window.location.protocol === 'file:' ? 'http://localhost:5000/api' : `${window.location.origin}/api`;
+const TITLES = {overview:'Dashboard',users:'Users',drivers:'Drivers',vehicles:'Vehicles',rides:'Rides',pricing:'Fare & Pricing',payments:'Payments',promos:'Promo Codes',reports:'Financial Reports',leaderboard:'Leaderboard',flags:'Admin Flags',setup:'Setup DB'};
+const SK = ['account_status','verification_status','availability_status','payment_status','ride_status','final_status'];
+const SM = {Active:'bg',Online:'bg',Verified:'bg',Paid:'bg',Completed:'bg',Pending:'by','On Trip':'by','Driver En Route':'by','In Progress':'bb',Requested:'by',Accepted:'bb',Banned:'br',Rejected:'br',Failed:'br',Cancelled:'br',Suspended:'bo',Offline:'bgr',Refunded:'bo'};
+const charts = {};
+
+const role = localStorage.getItem('role');
+if (role !== 'admin') {
+  window.location.href = 'index.html';
+}
+
+function show(id,el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('ptitle').textContent=TITLES[id]||id;
+}
+async function api(p,m='GET',b=null){
+  try{const o={method:m,headers:{'Content-Type':'application/json'}};if(b)o.body=JSON.stringify(b);return(await fetch(API+p,o)).json();}
+  catch{return{error:'Server offline'};}
+}
+function bdg(v){return`<span class="badge ${SM[v]||'bgr'}">${v}</span>`;}
+function tbl(data,id){
+  const el=document.getElementById(id);
+  if(!data||data.error||!data.length){el.innerHTML='<div style="text-align:center;padding:20px;font-size:0.72rem;color:var(--muted)">No records found</div>';return;}
+  const k=Object.keys(data[0]);
+  let h=`<table><thead><tr>${k.map(x=>`<th>${x.replace(/_/g,' ')}</th>`).join('')}</tr></thead><tbody>`;
+  data.forEach(r=>{h+=`<tr>${k.map(x=>{const v=r[x];return`<td>${v===null||v===undefined?'—':SK.includes(x)?bdg(String(v)):String(v)}</td>`;}).join('')}</tr>`;});
+  el.innerHTML=h+'</tbody></table>';
+}
+function msg(id,txt,ok=true){const el=document.getElementById(id);if(el)el.innerHTML=`<div class="alert ${ok?'alert-ok':'alert-err'}">${txt}</div>`;}
+function g(id){return document.getElementById(id);}
+
+async function initAll(){
+  const[u,d,r,f]=await Promise.all([api('/users'),api('/drivers'),api('/rides'),api('/flags')]);
+  g('st-u').textContent=Array.isArray(u)?u.length:'—';
+  g('st-d').textContent=Array.isArray(d)?d.filter(x=>x.availability_status==='Online').length:'—';
+  g('st-r').textContent=Array.isArray(r)?r.length:'—';
+  g('st-f').textContent=Array.isArray(f)?f.length:'—';
+  loadOvRides();loadOvLB();loadOvRev();loadRevenue();loadEarnings();
+  renderRevenueChart();
+  renderStatusChart();
+  const ref=await api('/reports/refunds');
+  if(ref&&ref.length)g('rpt-ref').textContent='PKR '+(ref[0].total_refunded||0);
+}
+async function loadOvRides(){const d=await api('/rides');if(!Array.isArray(d)){g('ov-rides').innerHTML='<div style="padding:12px;font-size:0.72rem;color:var(--muted)">Server offline</div>';return;}tbl(d.slice(0,8),'ov-rides');}
+async function loadOvLB(){const d=await api('/leaderboard');if(!Array.isArray(d)||!d.length){g('ov-lb').innerHTML='<div style="font-size:0.72rem;color:var(--muted);padding:10px">No data</div>';return;}g('ov-lb').innerHTML=d.slice(0,5).map((x,i)=>`<div class="lb-row"><div class="lb-n ${i<3?'top':''}">${i+1}</div><div class="lb-info"><div class="lb-name">${x.full_name}</div><div class="lb-city">${x.city||'—'}</div></div><div class="lb-star">★ ${parseFloat(x.average_rating||0).toFixed(1)}</div><div class="lb-trips">${x.total_trips} trips</div></div>`).join('');}
+async function loadOvRev(){const d=await api('/reports/revenue');if(!Array.isArray(d)||!d.length){g('ov-rev').innerHTML='<div style="font-size:0.72rem;color:var(--muted);padding:10px">No revenue data</div>';return;}const bm={};d.forEach(r=>{bm[r.payment_method]=(bm[r.payment_method]||0)+parseFloat(r.total_revenue||0);});const mx=Math.max(...Object.values(bm),1);g('ov-rev').innerHTML=Object.entries(bm).map(([m,v])=>`<div class="rev-row"><div class="rev-lbl">${m}</div><div class="rev-track"><div class="rev-fill" style="width:${(v/mx*100).toFixed(0)}%"></div></div><div class="rev-val">PKR ${v.toFixed(0)}</div></div>`).join('');}
+
+function resetChart(key){
+  if(charts[key]){charts[key].destroy();delete charts[key];}
+}
+
+async function renderRevenueChart(){
+  if(!window.Chart) return;
+  const rows = await api('/reports/revenue');
+  if(!Array.isArray(rows) || !rows.length) return;
+  const byDate = {};
+  rows.forEach(r => {
+    const dt = r.date;
+    byDate[dt] = (byDate[dt] || 0) + parseFloat(r.total_revenue || 0);
+  });
+  const labels = Object.keys(byDate).sort();
+  const limited = labels.slice(Math.max(labels.length - 14, 0));
+  const data = limited.map(l => Number(byDate[l] || 0));
+  const ctx = document.getElementById('rev-chart');
+  if(!ctx) return;
+  resetChart('rev');
+  charts.rev = new Chart(ctx, {
+    type: 'line',
+    data: { labels: limited, datasets: [{
+      label: 'Revenue (PKR)',
+      data,
+      borderColor: '#dc143c',
+      backgroundColor: 'rgba(220,20,60,0.15)',
+      tension: 0.35,
+      fill: true
+    }]},
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { ticks: { callback: v => `PKR ${v}` } }
+      }
+    }
+  });
+}
+
+async function renderStatusChart(){
+  if(!window.Chart) return;
+  const rides = await api('/rides');
+  if(!Array.isArray(rides) || !rides.length) return;
+  const counts = {};
+  rides.forEach(r => {
+    const s = r.ride_status || 'Unknown';
+    counts[s] = (counts[s] || 0) + 1;
+  });
+  const labels = Object.keys(counts);
+  const data = labels.map(l => counts[l]);
+  const colors = ['#dc143c','#f97316','#f59e0b','#10b981','#3b82f6','#6366f1','#9ca3af'];
+  const ctx = document.getElementById('status-chart');
+  if(!ctx) return;
+  resetChart('status');
+  charts.status = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors.slice(0, labels.length) }] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+}
+
+async function createUser(){const r=await api('/users','POST',{full_name:g('u-name').value,email:g('u-email').value,phone:g('u-phone').value,password_hash:g('u-pass').value,role:g('u-role').value});msg('u-msg',r.message||r.error,!r.error);if(!r.error)loadUsers();}
+async function updateStatus(){const r=await api(`/users/${g('u-sid').value}/status`,'PUT',{account_status:g('u-sval').value});msg('u-smsg',r.message||r.error,!r.error);if(!r.error)loadUsers();}
+async function deleteUser(){const id=g('u-del-id').value; if(!id){msg('u-dmsg','Enter a user ID',false);return;} const r=await api(`/users/${id}`,'DELETE'); msg('u-dmsg',r.message||r.error,!r.error); if(!r.error)loadUsers();}
+async function loadUsers(){tbl(await api('/users'+(g('u-filter').value?`?role=${g('u-filter').value}`:'')), 'users-tbl');}
+
+async function createDriver(){const r=await api('/drivers','POST',{user_id:g('d-uid').value,license_number:g('d-lic').value,cnic:g('d-cnic').value,city:g('d-city').value});msg('d-msg',r.message||r.error,!r.error);if(!r.error)loadDrivers();}
+async function verifyDriver(){const r=await api(`/drivers/${g('d-aid').value}/verify`,'PUT',{status:g('d-vst').value});msg('d-amsg',r.message||r.error,!r.error);if(!r.error)loadDrivers();}
+async function setAvail(){const r=await api(`/drivers/${g('d-aid').value}/availability`,'PUT',{availability_status:g('d-avail').value});msg('d-amsg',r.message||r.error,!r.error);}
+async function doPayout(){const r=await api(`/drivers/${g('d-paid').value}/payout`,'POST');msg('d-amsg',r.message||r.error,!r.error);}
+async function loadDrivers(){tbl(await api('/drivers'),'drivers-tbl');}
+
+async function createVehicle(){const r=await api('/vehicles','POST',{driver_id:g('v-did').value,make:g('v-make').value,model:g('v-model').value,year:g('v-year').value,color:g('v-color').value,license_plate:g('v-plate').value,vehicle_type:g('v-type').value});msg('v-msg',r.message||r.error,!r.error);if(!r.error)loadVehicles();}
+async function verifyVehicle(){const r=await api(`/vehicles/${g('v-vid').value}/verify`,'PUT',{status:g('v-vst').value});msg('v-amsg',r.message||r.error,!r.error);if(!r.error)loadVehicles();}
+async function loadVehicles(){
+  tbl(await api('/vehicles'),'vehicles-tbl');
+  // Also populate the driver ID hint below the input
+  const drivers = await api('/drivers');
+  if(Array.isArray(drivers)){
+    const hint = drivers.map(d => `${d.driver_id} = ${d.full_name} (${d.city||'?'})`).join(' | ');
+    const el = document.getElementById('v-did-hint');
+    if(el) el.textContent = 'Driver IDs: ' + hint;
+  }
+}
+
+async function loadRides(){const s=g('r-filter').value;tbl(await api('/rides'+(s?`?status=${encodeURIComponent(s)}`:'')), 'rides-tbl');}
+async function assignDriver(){const r=await api(`/rides/${g('ra-rid').value}/assign`,'PUT',{driver_id:g('ra-did').value,vehicle_id:g('ra-vid').value});msg('ra-msg',r.message||r.error,!r.error);if(!r.error)loadRides();}
+async function updateRideStatus(){const r=await api(`/rides/${g('rs-rid').value}/status`,'PUT',{ride_status:g('rs-st').value});msg('rs-msg',r.message||r.error,!r.error);if(!r.error)loadRides();}
+
+async function loadPricing(){const d=await api('/pricing');if(!Array.isArray(d)){g('pricing-ed').innerHTML='<div style="font-size:0.72rem;color:var(--muted)">Could not load</div>';return;}g('pricing-ed').innerHTML=d.map(p=>`<div class="pr-row"><div class="pr-type">${p.vehicle_type}</div><div><label>Base Rate</label><input type="number" id="pb-${p.pricing_id}" value="${p.base_rate}"></div><div><label>Per KM</label><input type="number" id="pk-${p.pricing_id}" value="${p.per_km_rate}"></div><div><label>Per Min</label><input type="number" id="pm-${p.pricing_id}" value="${p.per_min_rate}"></div><div><label>Surge ×</label><input type="number" step="0.1" id="ps-${p.pricing_id}" value="${p.surge_multiplier}"></div><div style="padding-top:22px"><button class="btn btn-out btn-sm" onclick="savePricing(${p.pricing_id})">Save</button></div></div>`).join('');}
+async function savePricing(id){const r=await api(`/pricing/${id}`,'PUT',{base_rate:g(`pb-${id}`).value,per_km_rate:g(`pk-${id}`).value,per_min_rate:g(`pm-${id}`).value,surge_multiplier:g(`ps-${id}`).value});msg('pricing-msg',r.message||r.error,!r.error);}
+async function calcFare(){const r=await api('/fare/calculate','POST',{vehicle_type:g('fc-type').value,distance_km:g('fc-dist').value,duration_min:g('fc-dur').value,promo_code:g('fc-promo').value});if(r.error){g('fare-res').innerHTML=`<div class="alert alert-err">${r.error}</div>`;return;}g('fare-res').innerHTML=`<div style="display:flex;gap:24px;align-items:center;background:var(--crimson-light);border:1px solid #fecdd3;border-radius:8px;padding:16px 20px"><div><div style="font-size:0.62rem;font-weight:600;color:var(--muted);margin-bottom:4px">FINAL FARE</div><div style="font-size:1.9rem;font-weight:700;color:var(--crimson)">PKR ${parseFloat(r.final_fare).toFixed(2)}</div></div>${parseFloat(r.discount)>0?`<div><div style="font-size:0.62rem;font-weight:600;color:var(--muted);margin-bottom:4px">DISCOUNT APPLIED</div><div style="font-size:1.1rem;font-weight:600;color:#166534">− PKR ${parseFloat(r.discount).toFixed(2)}</div></div>`:''}</div>`;}
+
+async function recordPay(){const r=await api('/payments','POST',{ride_id:g('p-rid').value,rider_id:g('p-uid').value,payment_method:g('p-method').value,promo_discount:g('p-disc').value});msg('p-msg',r.message||r.error,!r.error);if(!r.error)loadPayments();}
+async function refundPay(){const r=await api(`/payments/${g('ref-id').value}/refund`,'PUT');msg('ref-msg',r.message||r.error,!r.error);if(!r.error)loadPayments();}
+async function loadPayments(){tbl(await api('/payments'),'pay-tbl');}
+
+async function createPromo(){const r=await api('/promos','POST',{code:g('pr-code').value,discount_percent:g('pr-disc').value,valid_until:g('pr-date').value});msg('pr-msg',r.message||r.error,!r.error);if(!r.error)loadPromos();}
+async function loadPromos(){tbl(await api('/promos'),'promos-tbl');}
+
+async function loadRevenue(){const d=await api('/reports/revenue');tbl(d,'rev-tbl');if(Array.isArray(d)&&d.length){g('rpt-rev').textContent='PKR '+d.reduce((s,r)=>s+parseFloat(r.total_revenue||0),0).toFixed(0);g('rpt-txn').textContent=d.reduce((s,r)=>s+parseInt(r.transaction_count||0),0);}}
+async function loadEarnings(){const d=await api('/reports/driver-earnings');tbl(d,'earn-tbl');if(Array.isArray(d)&&d.length)g('rpt-drv').textContent='PKR '+d.reduce((s,x)=>s+parseFloat(x.wallet_balance||0),0).toFixed(0);}
+
+async function loadLB(){const d=await api('/leaderboard');if(!Array.isArray(d)||!d.length){g('lb-list').innerHTML='<div style="text-align:center;padding:20px;font-size:0.72rem;color:var(--muted)">No verified drivers</div>';return;}g('lb-list').innerHTML=d.map((x,i)=>`<div class="lb-row"><div class="lb-n ${i<3?'top':''}">${i+1}</div><div class="lb-info"><div class="lb-name">${x.full_name}</div><div class="lb-city">${x.city||'—'}</div></div><div class="lb-star">★ ${parseFloat(x.average_rating||0).toFixed(1)}</div><div class="lb-trips">${x.total_trips} trips</div></div>`).join('');}
+
+async function loadFlags(){const d=await api('/flags');if(!Array.isArray(d)||!d.length){g('flags-list').innerHTML='<div style="text-align:center;padding:20px;font-size:0.72rem;color:var(--muted)">No flags — all clear ✓</div>';return;}g('flags-list').innerHTML=d.map(f=>`<div class="flag-item"><div style="font-size:1rem">🚩</div><div class="fi-body"><div class="fi-name">${f.full_name} <span style="font-weight:400;color:var(--muted);font-size:0.63rem">(${f.role})</span></div><div class="fi-reason">${f.flag_reason}</div></div><div class="fi-time">${f.flagged_at||''}</div></div>`).join('');}
+
+async function setupDB(){g('setup-msg').innerHTML='<div class="alert alert-ok">Running schema setup...</div>';const r=await api('/setup','POST');msg('setup-msg',r.message||r.error,!r.error);}
+
+function logout(){
+  localStorage.removeItem('role');
+  localStorage.removeItem('user_id');
+  localStorage.removeItem('admin_id');
+  localStorage.removeItem('rider_id');
+  localStorage.removeItem('driver_id');
+  window.location.href = 'index.html';
+}
+
+initAll();
+loadPricing();
+</script>
+</body>
+</html>
