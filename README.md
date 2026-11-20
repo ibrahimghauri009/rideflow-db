@@ -74,5 +74,4 @@ Set `FLASK_DEBUG=1` to run Flask in debug mode.
 - Geocoding and routing use the public Nominatim and OSRM demo servers, which are rate-limited.
 - No automated tests.
 
-> **Team project.** Database Systems Lab, FAST-NUCES (Spring 2026), by Ibrahim Ghauri (23i-2653) and
-> [teammate name] (24i-0089). [Add who built which part before making this repo public.]
+> **Team project.** Database Systems Lab, FAST-NUCES (Spring 2026), by Ibrahim Ghauri and Hamza Sardar Khan.
