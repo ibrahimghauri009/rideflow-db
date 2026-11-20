@@ -75,3 +75,7 @@ Set `FLASK_DEBUG=1` to run Flask in debug mode.
 - No automated tests.
 
 > **Team project.** Database Systems Lab, FAST-NUCES (Spring 2026), by Ibrahim Ghauri and Hamza Sardar Khan.
+
+## Licence
+
+MIT; see `LICENSE`.
